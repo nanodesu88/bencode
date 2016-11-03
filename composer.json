@@ -1,0 +1,12 @@
+{
+    "name": "nanodesu88/bencode",
+    "authors": [
+        {
+            "name": "nanodesu88",
+            "email": "nanodesukawaii@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4"
+    }
+}
