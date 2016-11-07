@@ -100,9 +100,8 @@ class BencodeDictionary extends BencodeCollection
      */
     public function offsetSet($offset, $value)
     {
-        if (!$offset instanceof BencodeElement) {
-            throw new BencodeException();
-        }
+        $offset = static::parse($offset);
+        $value = static::parse($value);
 
         if (isset($this[$offset])) {
 
@@ -117,7 +116,21 @@ class BencodeDictionary extends BencodeCollection
      */
     public function offsetUnset($offset)
     {
-        // TODO: Implement offsetUnset() method.
+        $offset = static::parse($offset);
+
+        foreach ($this->value as $i => $item) {
+            /**
+             * @var BencodeElement $key
+             * @var BencodeElement $value
+             */
+            list($key, $value) = [$item['key'], $item['value']];
+
+            if ($offset->compare($key)) {
+                array_splice($this->value, $i, 1);
+
+                break;
+            }
+        }
     }
 
     /**

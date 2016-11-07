@@ -2,27 +2,27 @@
 
 namespace nanodesu88\bencode;
 
-class Bencode
+class Bencode extends BencodeDictionary
 {
     /**
      * @var BencodeCollection
      */
-    public $element;
+    // public $element;
 
     /**
      * Bencode constructor.
      */
-    private function __construct()
+    /*private function __construct()
     {
-        $this->element;
-    }
+        // $this->element;
+    }*/
 
     /**
      * @return bool
      */
     public function isMulti()
     {
-        return isset($this->element['info']['files']);
+        return isset($this['info']['files']);
     }
 
     /**
@@ -31,12 +31,12 @@ class Bencode
     public function getSize()
     {
         if (!$this->isMulti()) {
-            return $this->element['info']['length']->getValue();
+            return $this['info']['length']->getValue();
         }
 
         $length = 0;
 
-        foreach ($this->element['info']['files'] as $key => $file) {
+        foreach ($this['info']['files'] as $key => $file) {
             $length += $file['length']->getValue();
         }
 
@@ -48,8 +48,8 @@ class Bencode
      */
     public function getCountFiles()
     {
-        if (isset($this->element['info']['files'])) {
-            return count($this->element['info']['files']);
+        if (isset($this['info']['files'])) {
+            return count($this['info']['files']);
         }
 
         return 1;
@@ -60,7 +60,7 @@ class Bencode
      */
     public function getSha1()
     {
-        return sha1($this->element['info']->encode());
+        return sha1($this['info']->encode());
     }
 
     /**
@@ -68,23 +68,31 @@ class Bencode
      * @return static
      * @throws BencodeException
      */
-    public static function encode($data)
+    public static function decode($data)
     {
         $handle = fopen('php://memory', 'a');
 
         fputs($handle, $data);
         fseek($handle, 0);
 
-        $root = NULL;
+        if($data[0] != 'd'){
+            throw new BencodeException();
+        }
+
+        $root = null;
         /** @var BencodeCollection $current */
-        $current = NULL;
+        $current = $root;
 
         for ($pos = 0, $len = strlen($data); $pos < $len; $pos = ftell($handle)) {
             $c = fgetc($handle);
 
             switch ($c) {
                 case 'd':
-                    $t = new BencodeDictionary();
+                    if($root === null){
+                        $t = new Bencode();
+                    }else {
+                        $t = new BencodeDictionary();
+                    }
 
                     if ($root === NULL) {
                         $root = $t;
@@ -137,9 +145,6 @@ class Bencode
             }
         }
 
-        $obj = new static();
-        $obj->element = $root;
-
-        return $obj;
+        return $root;
     }
 }
