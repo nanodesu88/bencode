@@ -17,6 +17,21 @@ class Bencode extends BencodeDictionary
         // $this->element;
     }*/
 
+    public function keys()
+    {
+        $r = [];
+        foreach ($this->value as $item) {
+            /**
+             * @var BencodeElement $key
+             * @var BencodeElement $value
+             */
+            list($key, $value) = [$item['key'], $item['value']];
+            $r[] = $key->getValue();
+        }
+
+        return $r;
+    }
+
     /**
      * @return bool
      */
@@ -75,7 +90,7 @@ class Bencode extends BencodeDictionary
         fputs($handle, $data);
         fseek($handle, 0);
 
-        if($data[0] != 'd'){
+        if ($data[0] != 'd') {
             throw new BencodeException();
         }
 
@@ -88,9 +103,9 @@ class Bencode extends BencodeDictionary
 
             switch ($c) {
                 case 'd':
-                    if($root === null){
+                    if ($root === null) {
                         $t = new Bencode();
-                    }else {
+                    } else {
                         $t = new BencodeDictionary();
                     }
 
