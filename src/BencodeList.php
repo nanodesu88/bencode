@@ -58,7 +58,11 @@ class BencodeList extends BencodeCollection
      */
     public function offsetSet($offset, $value)
     {
-        $this->value[$offset] = $value;
+        if ($offset === null) {
+            $this->value[] = $value;
+        } else {
+            $this->value[$offset] = $value;
+        }
 
         $value->parent = $this;
     }
