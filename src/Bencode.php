@@ -71,6 +71,28 @@ class Bencode extends BencodeDictionary
     }
 
     /**
+     * @return BencodeFile[]
+     */
+    public function getFiles()
+    {
+        if (isset($this['info']['files'])) {
+            $result = new BencodeList();
+
+            foreach ($this['info']['files'] as $file) {
+                $f = new BencodeFile();
+                $f['length'] = $file['length'];
+                $f['path'] = $file['path'];
+
+                $result[] = $f;
+            }
+
+            return $result;
+        }
+
+        return [];
+    }
+
+    /**
      * @return string
      */
     public function getSha1()
@@ -149,7 +171,7 @@ class Bencode extends BencodeDictionary
                         $stringLength .= $nextC;
                     }
 
-                    $e = new BencodeString((int) $stringLength > 0 ? fread($handle, (int) $stringLength) : '');
+                    $e = new BencodeString((int)$stringLength > 0 ? fread($handle, (int)$stringLength) : '');
 
                     if (!$current instanceof BencodeElement) {
                         throw new BencodeException();
