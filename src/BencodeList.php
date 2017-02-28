@@ -14,10 +14,14 @@ class BencodeList extends BencodeCollection
      */
     public function encode()
     {
+       parent::encode();
+
         $data = 'l';
+
         foreach ($this->value as $item) {
             $data .= $item->encode();
         }
+
         return $data . 'e';
     }
 

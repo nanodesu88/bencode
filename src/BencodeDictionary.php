@@ -2,6 +2,8 @@
 
 namespace nanodesu88\bencode;
 
+use Illuminate\Support\Arr;
+
 class BencodeDictionary extends BencodeCollection
 {
     /**
@@ -14,7 +16,10 @@ class BencodeDictionary extends BencodeCollection
      */
     public function encode()
     {
+        parent::encode();
+        
         $data = 'd';
+
         foreach ($this->value as $item) {
             /**
              * @var BencodeElement $key
@@ -23,6 +28,7 @@ class BencodeDictionary extends BencodeCollection
             list($key, $value) = [$item['key'], $item['value']];
             $data .= $key->encode() . $value->encode();
         }
+
         return $data . 'e';
     }
 
@@ -104,11 +110,18 @@ class BencodeDictionary extends BencodeCollection
         $value = static::parse($value);
 
         if (isset($this[$offset])) {
-
+            foreach ($this->value as $key => $item) {
+                if ($item['key']->compare($offset)) {
+                    $this->value[$key]['value'] = $value;
+                    ksort($this->value);
+                    break;
+                }
+            }
         } else {
             $this->value[] = ['key' => $offset, 'value' => $value];
-            $value->parent = $this;
         }
+
+        $value->parent = $this;
     }
 
     /**
@@ -148,6 +161,4 @@ class BencodeDictionary extends BencodeCollection
     {
         return false;
     }
-
-
 }

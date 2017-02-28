@@ -38,6 +38,8 @@ class BencodeString extends BencodeElement
      */
     public function encode()
     {
+        parent::encode();
+
         return strlen($this->value) . ':' . $this->value;
     }
 

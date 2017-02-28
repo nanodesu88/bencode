@@ -40,6 +40,8 @@ class BencodeInteger extends BencodeElement
      */
     public function encode()
     {
+        parent::encode();
+
         return 'i' . $this->value . 'e';
     }
 
