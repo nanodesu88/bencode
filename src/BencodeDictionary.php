@@ -1,3 +1,22 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <?php
 
 namespace nanodesu88\bencode;
@@ -142,3 +161,22 @@ class BencodeDictionary extends BencodeCollection
         return false;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
