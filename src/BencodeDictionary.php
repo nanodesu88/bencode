@@ -80,8 +80,8 @@ class BencodeDictionary extends BencodeCollection
     }
 
     /**
-     * @param  $key
-     * @return BencodeElement
+     * @param string $key
+     * @return BencodeElement|BencodeCollection|BencodeDictionary|BencodeList|BencodeString
      */
     public function getValue($key)
     {

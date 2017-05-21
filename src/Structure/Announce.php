@@ -6,6 +6,7 @@ use nanodesu88\bencode\Bencode;
 use nanodesu88\bencode\BencodeDictionary;
 use nanodesu88\bencode\BencodeList;
 use nanodesu88\bencode\BencodeString;
+use nanodesu88\bencode\Structure\Support\Peer;
 use nanodesu88\bencode\Structure\Support\PeerInterface;
 
 class Announce extends Bencode
@@ -64,5 +65,40 @@ class Announce extends Bencode
             $this['complete'] = $this->complete;
             $this['incomplete'] = $this->incomplete;
         }
+    }
+
+    public static function decode($data)
+    {
+        /** @var static $result */
+        $result = parent::decode($data);
+
+        $result->interval = $result->getValue('interval')->getValue();
+
+        $peers = $result->getValue('peers');
+
+        if ($peers instanceof BencodeString) {
+            foreach (str_split($peers->getValue(), 6) as $item) {
+                $result->peers[] = Peer::parse($item);
+            }
+        } else if ($peers instanceof BencodeList) {
+            foreach ($result->getValue('peers') as $item) {
+                /** @var BencodeDictionary $item */
+                $result->peers[] = Peer::parse($item);
+            }
+        }
+
+
+
+        return $result;
+    }
+
+    public function __dump()
+    {
+        return [
+            'interval' => $this->interval,
+            'peers' => $this->peers,
+            'complete' => $this->complete,
+            'incomplete' => $this->incomplete
+        ];
     }
 }

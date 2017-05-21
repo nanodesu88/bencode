@@ -2,6 +2,7 @@
 
 namespace nanodesu88\bencode\Structure;
 
+use \ArrayObject;
 use Illuminate\Support\Arr;
 use nanodesu88\bencode\Bencode;
 use nanodesu88\bencode\BencodeElement;
@@ -34,6 +35,16 @@ class Torrent extends Bencode
     private $files = [];
 
     /**
+     * @var string
+     */
+    private $announce = '';
+
+    /**
+     * @var ArrayObject
+     */
+    private $announces;
+
+    /**
      * @return string
      */
     public function getSha1()
@@ -64,6 +75,29 @@ class Torrent extends Bencode
         return $this->length;
     }
 
+    public function getAnnounce(): string
+    {
+        return $this->announce;
+    }
+
+    public function setAnnounce(string $value)
+    {
+        $this->announce = $value;
+    }
+
+    /**
+     * @return ArrayObject
+     */
+    public function getAnnounces()
+    {
+        return $this->announces;
+    }
+
+    public function __construct()
+    {
+        $this->announces = new ArrayObject();
+    }
+
     public static function decode($data)
     {
         /** @var static $result */
@@ -90,7 +124,7 @@ class Torrent extends Bencode
             $result->countFiles = 1;
         }
 
-        if ($result->countFiles) {
+        if ($result->countFiles > 1) {
             foreach ($files as $file) {
                 $path = [];
 
@@ -102,7 +136,25 @@ class Torrent extends Bencode
             }
         }
 
+        $result->announce = $result->getValue('announce')->getValue();
+        $result->announces->exchangeArray(array_map(function (BencodeElement $element) {
+            return $element->values()[0]->getValue();
+        }, $result->getValue('announce-list')->values()));
+
         return $result;
     }
 
+    public function prepare()
+    {
+        parent::prepare();
+
+        $this->getValue('announce')->setValue($this->announce);
+
+        $announces = $this->getValue('announce-list');
+        $announces->clear();
+
+        foreach ($this->announces as $announce) {
+            $announces->push($announce);
+        }
+    }
 }

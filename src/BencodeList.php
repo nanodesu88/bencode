@@ -57,11 +57,21 @@ class BencodeList extends BencodeCollection
         return array_key_exists($offset, $this->value);
     }
 
-    public function push(BencodeElement $value)
+    /**
+     * @param mixed $value
+     */
+    public function push($value)
     {
+        $value = static::parse($value);
+
         $this->value[] = $value;
 
         $value->parent = $this;
+    }
+
+    public function clear()
+    {
+        $this->value = [];
     }
 
     /**

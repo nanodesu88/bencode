@@ -47,6 +47,7 @@ class Bencode extends BencodeDictionary
         if ($data[0] != 'd') {
             throw new BencodeException();
         }
+
         /** @var BencodeCollection $current */
         $root = $current = null;
 
