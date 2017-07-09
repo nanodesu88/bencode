@@ -151,6 +151,12 @@ class Torrent extends Bencode
         $this->getValue('announce')->setValue($this->announce);
 
         $announces = $this->getValue('announce-list');
+        
+        if (!$announces) {
+            $announces = new BencodeList();
+            $this->setValue('announce-list', $announces);
+        }
+        
         $announces->clear();
 
         foreach ($this->announces as $announce) {
