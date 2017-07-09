@@ -6,6 +6,7 @@ use \ArrayObject;
 use Illuminate\Support\Arr;
 use nanodesu88\bencode\Bencode;
 use nanodesu88\bencode\BencodeElement;
+use nanodesu88\bencode\BencodeList;
 
 class Torrent extends Bencode
 {
