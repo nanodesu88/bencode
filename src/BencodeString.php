@@ -30,7 +30,7 @@ class BencodeString extends BencodeElement
      */
     public function setValue($value)
     {
-        $this->value = (string)$value;
+        $this->value = (string) $value;
     }
 
     /**
@@ -48,7 +48,7 @@ class BencodeString extends BencodeElement
      */
     public function __toString()
     {
-        return (string)$this->value;
+        return (string) $this->value;
     }
 
     /**
