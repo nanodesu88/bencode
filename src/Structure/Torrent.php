@@ -141,7 +141,12 @@ class Torrent extends Bencode
         
         if ($announceList = $result->getValue('announce-list')) {
             $result->announces->exchangeArray(array_map(function (BencodeElement $element) {
-                return $element->getValue();
+                // На случай двухуровнего списка
+                if ($element instanceof BencodeList) {
+                    return $element->values()[0]->getValue();
+                } else {
+                    return $element->getValue();
+                }
             }, $announceList->values()));
         }
 
