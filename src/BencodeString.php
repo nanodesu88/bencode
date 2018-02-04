@@ -28,9 +28,9 @@ class BencodeString extends BencodeElement
     /**
      * @param string $value
      */
-    public function setValue($value)
+    public function setValue(string $value)
     {
-        $this->value = (string) $value;
+        $this->value = $value;
     }
 
     /**
@@ -48,7 +48,7 @@ class BencodeString extends BencodeElement
      */
     public function __toString()
     {
-        return (string) $this->value;
+        return (string)$this->value;
     }
 
     /**
@@ -56,11 +56,25 @@ class BencodeString extends BencodeElement
      */
     public function compare(BencodeElement $element)
     {
-        return $this->encode() == $element->encode();
+        return $this->encode() === $element->encode();
     }
 
+    /**
+     * @return string
+     */
+    public function unMorph()
+    {
+        return $this->getValue();
+    }
+
+    /**
+     * @param $string
+     * @return $this
+     */
     public function concat($string)
     {
         $this->value .= $string;
+
+        return $this;
     }
 }

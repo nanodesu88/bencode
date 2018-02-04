@@ -7,6 +7,7 @@ class Bencode extends BencodeDictionary
     /**
      * @var BencodeCollection
      */
+
     // public $element;
 
     /**
@@ -20,6 +21,7 @@ class Bencode extends BencodeDictionary
     public function keys()
     {
         $r = [];
+
         foreach ($this->value as $item) {
             /**
              * @var BencodeElement $key
@@ -44,9 +46,11 @@ class Bencode extends BencodeDictionary
         fputs($handle, $data);
         fseek($handle, 0);
 
+        /*
         if ($data[0] != 'd') {
             throw new BencodeException();
         }
+        */
 
         /** @var BencodeCollection $current */
         $root = $current = null;
@@ -110,6 +114,8 @@ class Bencode extends BencodeDictionary
                     break;
             }
         }
+
+        fclose($handle);
 
         return $root;
     }

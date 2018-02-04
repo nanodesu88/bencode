@@ -25,12 +25,6 @@ abstract class BencodeElement
         return '';
     }
 
-    /**
-     * @param BencodeElement $element
-     * @return bool
-     */
-    abstract public function compare(BencodeElement $element);
-
     public function prepare()
     {
 
@@ -40,7 +34,7 @@ abstract class BencodeElement
      * @param $value
      * @return BencodeElement
      */
-    public static function parse($value)
+    public static function morph($value)
     {
         if ($value instanceof BencodeElement) {
             return $value;
@@ -48,16 +42,9 @@ abstract class BencodeElement
 
         if (is_array($value)) {
             if (Arr::isAssoc($value)) {
-                $result = new BencodeDictionary();
-
-                foreach ($value as $key => $val) {
-                    $result->smartAdd(BencodeElement::parse($key));
-                    $result->smartAdd(BencodeElement::parse($val));
-                }
-
-                return $result;
+                return new BencodeDictionary($value);
             } else {
-
+                return new BencodeList($value);
             }
         } else if (is_integer($value)) {
             return new BencodeInteger($value);
@@ -65,4 +52,16 @@ abstract class BencodeElement
             return new BencodeString($value);
         }
     }
+
+    /**
+     * @return mixed
+     */
+    public abstract function unMorph();
+
+    /**
+     * @param BencodeElement $element
+     * @return bool
+     */
+    abstract public function compare(BencodeElement $element);
+
 }

@@ -5,10 +5,11 @@ namespace nanodesu88\bencode\Structure;
 use \ArrayObject;
 use Illuminate\Support\Arr;
 use nanodesu88\bencode\Bencode;
+use nanodesu88\bencode\BencodeDictionary;
 use nanodesu88\bencode\BencodeElement;
 use nanodesu88\bencode\BencodeList;
 
-class Torrent extends Bencode
+class Torrent implements IEntity
 {
     /**
      * @var string
@@ -45,17 +46,11 @@ class Torrent extends Bencode
      */
     private $announces;
 
-    /**
-     * @return string
-     */
     public function getSha1()
     {
         return $this->sha1;
     }
 
-    /**
-     * @return bool
-     */
     public function isMulti()
     {
         return $this->isMulti;
@@ -76,12 +71,12 @@ class Torrent extends Bencode
         return $this->length;
     }
 
-    public function getAnnounce(): string
+    public function getAnnounce()
     {
         return $this->announce;
     }
 
-    public function setAnnounce(string $value)
+    public function setAnnounce($value)
     {
         $this->announce = $value;
     }
@@ -99,60 +94,6 @@ class Torrent extends Bencode
         $this->announces = new ArrayObject();
     }
 
-    public static function decode($data)
-    {
-        /** @var static $result */
-        $result = parent::decode($data);
-
-        $result->sha1 = sha1($result->getValue('info')->encode());
-        $result->isMulti = $result->getValue('info')->getValue('files') !== null;
-
-        if (!$result->isMulti()) {
-            $result->length = $result->getValue('info')->getValue('length')->getValue();
-        } else {
-            $length = 0;
-
-            foreach ($result->getValue('info')->getValue('files') as $key => $file) {
-                $length += $file->getValue('length')->getValue();
-            }
-
-            $result->length = $length;
-        }
-
-        if ($files = $result->getValue('info')->getValue('files')) {
-            $result->countFiles = count($files);
-        } else {
-            $result->countFiles = 1;
-        }
-
-        if ($result->countFiles > 1) {
-            foreach ($files as $file) {
-                $path = [];
-
-                foreach ($file->getValue('path') as $item) {
-                    $path[] = $item->getValue();
-                }
-
-                $result->files[join(DIRECTORY_SEPARATOR, $path)] = $file->getValue('length')->getValue();
-            }
-        }
-
-        $result->announce = $result->getValue('announce')->getValue();
-        
-        if ($announceList = $result->getValue('announce-list')) {
-            $result->announces->exchangeArray(array_map(function (BencodeElement $element) {
-                // На случай двухуровнего списка
-                if ($element instanceof BencodeList) {
-                    return $element->values()[0]->getValue();
-                } else {
-                    return $element->getValue();
-                }
-            }, $announceList->values()));
-        }
-
-        return $result;
-    }
-
     public function prepare()
     {
         parent::prepare();
@@ -160,16 +101,65 @@ class Torrent extends Bencode
         $this->getValue('announce')->setValue($this->announce);
 
         $announces = $this->getValue('announce-list');
-        
+
         if (!$announces) {
             $announces = new BencodeList();
             $this->setValue('announce-list', $announces);
         }
-        
+
         $announces->clear();
 
         foreach ($this->announces as $announce) {
             $announces->push($announce);
+        }
+    }
+
+    public function load(BencodeDictionary $bencodeElement)
+    {
+        $this->sha1    = sha1($bencodeElement->getValue('info')->encode());
+        $this->isMulti = $bencodeElement->getValue('info')->getValue('files') !== null;
+
+        if (!$this->isMulti()) {
+            $this->length = $bencodeElement->getValue('info')->getValue('length')->unMorph();
+        } else {
+            $length = 0;
+
+            foreach ($bencodeElement->getValue('info')->getValue('files') as $key => $file) {
+                $length += $file->getValue('length')->unMorph();
+            }
+
+            $this->length = $length;
+        }
+
+        if ($files = $bencodeElement->getValue('info')->getValue('files')) {
+            $this->countFiles = count($files);
+        } else {
+            $this->countFiles = 1;
+        }
+
+        if ($this->countFiles > 1) {
+            foreach ($files as $file) {
+                $path = [];
+
+                foreach ($file->getValue('path') as $item) {
+                    $path[] = $item->getValue();
+                }
+
+                $this->files[join(DIRECTORY_SEPARATOR, $path)] = $file->getValue('length')->getValue();
+            }
+        }
+
+        $this->announce = $bencodeElement->getValue('announce')->getValue();
+
+        if ($announceList = $bencodeElement->getValue('announce-list')) {
+            $this->announces->exchangeArray(array_map(function (BencodeElement $element) {
+                // На случай двухуровнего списка
+                if ($element instanceof BencodeList) {
+                    return $element->values()[0]->getValue();
+                } else {
+                    return $element->getValue();
+                }
+            }, $announceList->values()));
         }
     }
 }

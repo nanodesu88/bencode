@@ -12,19 +12,17 @@ class BencodeInteger extends BencodeElement
     /**
      * @param int $value
      */
-    public function __construct($value = null)
+    public function __construct(int $value)
     {
-        if ($value) {
-            $this->setValue($value);
-        }
+        $this->setValue($value);
     }
 
     /**
      * @param $value
      */
-    public function setValue($value)
+    public function setValue(int $value)
     {
-        $this->value = (int)$value;
+        $this->value = $value;
     }
 
     /**
@@ -40,17 +38,7 @@ class BencodeInteger extends BencodeElement
      */
     public function encode()
     {
-        parent::encode();
-
         return 'i' . $this->value . 'e';
-    }
-
-    /**
-     * @return string
-     */
-    public function __toString()
-    {
-        return (string)$this->value;
     }
 
     /**
@@ -58,6 +46,15 @@ class BencodeInteger extends BencodeElement
      */
     public function compare(BencodeElement $element)
     {
-        return $this->encode() == $element->encode();
+        return $this->encode() === $element->encode() && get_class($this) && get_class($element);
     }
+
+    /**
+     * @return int
+     */
+    public function unMorph()
+    {
+        return $this->getValue();
+    }
+
 }

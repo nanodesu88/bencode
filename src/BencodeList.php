@@ -9,13 +9,18 @@ class BencodeList extends BencodeCollection
      */
     protected $value = [];
 
+    public function __construct(iterable $source = [])
+    {
+        foreach ($source as $item) {
+            $this->smartAdd(BencodeElement::morph($item));
+        }
+    }
+
     /**
      * @inheritDoc
      */
     public function encode()
     {
-        parent::encode();
-
         $data = 'l';
 
         foreach ($this->value as $item) {
@@ -31,6 +36,14 @@ class BencodeList extends BencodeCollection
     public function values()
     {
         return $this->value;
+    }
+
+    /**
+     * @return array
+     */
+    public function keys()
+    {
+        return array_keys($this->value);
     }
 
     /**
@@ -52,9 +65,14 @@ class BencodeList extends BencodeCollection
     /**
      * @inheritDoc
      */
-    public function offsetExists($offset)
+    public function exists($offset)
     {
         return array_key_exists($offset, $this->value);
+    }
+
+    public function unset($offset)
+    {
+        unset($this[$offset]);
     }
 
     /**
@@ -62,7 +80,7 @@ class BencodeList extends BencodeCollection
      */
     public function push($value)
     {
-        $value = static::parse($value);
+        $value = BencodeElement::morph($value);
 
         $this->value[] = $value;
 
@@ -90,7 +108,19 @@ class BencodeList extends BencodeCollection
         return false;
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function unMorph()
+    {
+        $result = [];
 
+        foreach ($this->value as $item) {
+            $result[] = $item->unMorph();
+        }
+
+        return $result;
+    }
 }
 
 

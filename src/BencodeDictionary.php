@@ -7,26 +7,34 @@ use Illuminate\Support\Arr;
 class BencodeDictionary extends BencodeCollection
 {
     /**
-     * @var array
+     * @var BencodeDictionaryPair[]
      */
     protected $value = [];
+
+    /**
+     * BencodeDictionary constructor.
+     *
+     * @param iterable $source
+     * @throws BencodeException
+     */
+    public function __construct(iterable $source = [])
+    {
+        foreach ($source as $key => $val) {
+            $this->checkKey($key);
+
+            $this->setValue(BencodeElement::morph($key), BencodeElement::morph($val));
+        }
+    }
 
     /**
      * @inheritDoc
      */
     public function encode()
     {
-        parent::encode();
-
         $data = 'd';
 
         foreach ($this->value as $item) {
-            /**
-             * @var BencodeElement $key
-             * @var BencodeElement $value
-             */
-            list($key, $value) = [$item['key'], $item['value']];
-            $data .= $key->encode() . $value->encode();
+            $data .= $item->key->encode() . $item->value->encode();
         }
 
         return $data . 'e';
@@ -37,6 +45,11 @@ class BencodeDictionary extends BencodeCollection
      */
     protected $_smart;
 
+    /**
+     * @param BencodeElement $e
+     * @return mixed|void
+     * @throws BencodeException
+     */
     public function smartAdd(BencodeElement $e)
     {
         if ($this->_smart === null) {
@@ -62,16 +75,10 @@ class BencodeDictionary extends BencodeCollection
      */
     public function exists($offset)
     {
-        $offset = static::parse($offset);
+        $offset = static::morph($offset);
 
         foreach ($this->value as $index => $pair) {
-            /**
-             * @var BencodeElement $key
-             * @var BencodeElement $value
-             */
-            list($key, $value) = [$pair['key'], $pair['value']];
-
-            if ($key->compare($offset)) {
+            if ($pair->key->compare($offset)) {
                 return true;
             }
         }
@@ -85,17 +92,11 @@ class BencodeDictionary extends BencodeCollection
      */
     public function getValue($key)
     {
-        $offset = static::parse($key);
+        $offset = static::morph($key);
 
         foreach ($this->value as $item) {
-            /**
-             * @var BencodeElement $key
-             * @var BencodeElement $value
-             */
-            list($key, $value) = [$item['key'], $item['value']];
-
-            if ($key->compare($offset)) {
-                return $value;
+            if ($item->key->compare($offset)) {
+                return $item->value;
             }
         }
 
@@ -103,24 +104,29 @@ class BencodeDictionary extends BencodeCollection
     }
 
     /**
-     * @param $key
-     * @param $value
+     * @param string|BencodeString $key
+     * @param mixed|BencodeElement $value
+     * @throws BencodeException
      */
     public function setValue($key, $value)
     {
-        $offset = static::parse($key);
-        $value = static::parse($value);
+        $this->checkKey($key);
+
+        $offset = static::morph($key);
+        $value  = static::morph($value);
 
         if ($this->exists($offset)) {
             foreach ($this->value as $key => $item) {
-                if ($item['key']->compare($offset)) {
-                    $this->value[$key]['value'] = $value;
+                if ($item->key->compare($offset)) {
+                    $item->value = $value;
+                    // Некоторые клиенты требуют отсортированный список
                     ksort($this->value);
+
                     break;
                 }
             }
         } else {
-            $this->value[] = ['key' => $offset, 'value' => $value];
+            $this->value[] = new BencodeDictionaryPair($offset, $value);
         }
 
         $value->parent = $this;
@@ -140,6 +146,27 @@ class BencodeDictionary extends BencodeCollection
     public function compare(BencodeElement $element)
     {
         return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function unMorph()
+    {
+        $result = [];
+
+        foreach ($this->value as $item) {
+            $result[$item->key->unMorph()] = $item->value->unMorph();
+        }
+
+        return $result;
+    }
+
+    protected function checkKey($key)
+    {
+        if (($key instanceof BencodeElement && !($key instanceof BencodeString)) && !is_string($key)) {
+            throw new BencodeException('dictionary keys must be string');
+        }
     }
 }
 
