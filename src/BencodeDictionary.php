@@ -27,6 +27,10 @@ class BencodeDictionary extends BencodeCollection
      * @inheritDoc
      */
     public function encode() {
+        usort($this->value, function (BencodeDictionaryPair $pair1, BencodeDictionaryPair $pair2) {
+            return $pair1->key->unMorph() > $pair2->key->unMorph();
+        });
+
         $data = 'd';
 
         foreach ($this->value as $item) {

@@ -8,7 +8,8 @@
   ],
   "require": {
     "php": ">=5.4",
-    "illuminate/support": "*"
+    "illuminate/support": "*",
+    "illuminate/filesystem": "^5.5"
   },
   "autoload": {
     "psr-4": {

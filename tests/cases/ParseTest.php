@@ -100,4 +100,8 @@ final class ParseTest extends TestCase
         $this->assertEquals($ann->complete, $obj->complete);
         $this->assertEquals($ann->incomplete, $obj->incomplete);
     }
+
+    public function testTorrentCreator() {
+
+    }
 }
