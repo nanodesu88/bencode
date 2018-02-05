@@ -2,11 +2,10 @@
 
 namespace nanodesu88\bencode\Structure;
 
-use \ArrayObject;
-use Illuminate\Support\Arr;
-use nanodesu88\bencode\Bencode;
+use ArrayObject;
 use nanodesu88\bencode\BencodeDictionary;
 use nanodesu88\bencode\BencodeElement;
+use nanodesu88\bencode\BencodeException;
 use nanodesu88\bencode\BencodeList;
 
 class Torrent implements IEntity
@@ -46,92 +45,91 @@ class Torrent implements IEntity
      */
     private $announces;
 
-    public function getSha1()
-    {
+    /**
+     * @var BencodeDictionary|null
+     */
+    private $original;
+
+    public function getSha1() {
         return $this->sha1;
     }
 
-    public function isMulti()
-    {
+    public function isMulti() {
         return $this->isMulti;
     }
 
-    public function getFiles()
-    {
+    public function getFiles() {
         return $this->files;
     }
 
-    public function getCountFiles()
-    {
+    public function getCountFiles() {
         return $this->countFiles;
     }
 
-    public function getLength()
-    {
+    public function getLength() {
         return $this->length;
     }
 
-    public function getAnnounce()
-    {
+    public function getAnnounce() {
         return $this->announce;
     }
 
-    public function setAnnounce($value)
-    {
+    public function setAnnounce($value) {
         $this->announce = $value;
     }
 
     /**
      * @return ArrayObject
      */
-    public function getAnnounces()
-    {
+    public function getAnnounces() {
         return $this->announces;
     }
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->announces = new ArrayObject();
     }
 
-    public function prepare()
-    {
-        parent::prepare();
-
-        $this->getValue('announce')->setValue($this->announce);
-
-        $announces = $this->getValue('announce-list');
-
-        if (!$announces) {
-            $announces = new BencodeList();
-            $this->setValue('announce-list', $announces);
+    /**
+     * @return string
+     * @throws BencodeException
+     */
+    public function encode() {
+        if (!$this->original) {
+            throw new BencodeException('no bencode provided');
         }
 
-        $announces->clear();
+        $this->original->get('announce')->set($this->announce);
+        $this->original->set('announce-list', $announceListBencode = new BencodeList());
 
         foreach ($this->announces as $announce) {
-            $announces->push($announce);
+            $announceListBencode->push($announce);
         }
+
+        return $this->original->encode();
     }
 
-    public function load(BencodeDictionary $bencodeElement)
-    {
-        $this->sha1    = sha1($bencodeElement->getValue('info')->encode());
-        $this->isMulti = $bencodeElement->getValue('info')->getValue('files') !== null;
+    public function load(BencodeDictionary $bencodeElement) {
+        $this->original = $bencodeElement;
 
+        // info
+        $this->sha1    = sha1($bencodeElement->get('info')->encode());
+        $this->isMulti = $bencodeElement->get('info')->get('files') !== null;
+
+        // torrent length
         if (!$this->isMulti()) {
-            $this->length = $bencodeElement->getValue('info')->getValue('length')->unMorph();
+            $this->length = $bencodeElement->get('info')->get('length')->unMorph();
         } else {
             $length = 0;
 
-            foreach ($bencodeElement->getValue('info')->getValue('files') as $key => $file) {
-                $length += $file->getValue('length')->unMorph();
+            foreach ($bencodeElement->get('info')->get('files') as $key => $file) {
+                $length += $file->get('length')->unMorph();
             }
 
             $this->length = $length;
         }
 
-        if ($files = $bencodeElement->getValue('info')->getValue('files')) {
+        // files
+        if ($files = $bencodeElement->get('info')->get('files')) {
             $this->countFiles = count($files);
         } else {
             $this->countFiles = 1;
@@ -149,15 +147,16 @@ class Torrent implements IEntity
             }
         }
 
+        // announces
         $this->announce = $bencodeElement->getValue('announce')->getValue();
 
         if ($announceList = $bencodeElement->getValue('announce-list')) {
             $this->announces->exchangeArray(array_map(function (BencodeElement $element) {
                 // На случай двухуровнего списка
                 if ($element instanceof BencodeList) {
-                    return $element->values()[0]->getValue();
+                    return $element->values()[0]->unMorph();
                 } else {
-                    return $element->getValue();
+                    return $element->unMorph();
                 }
             }, $announceList->values()));
         }

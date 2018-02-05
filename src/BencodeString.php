@@ -12,32 +12,32 @@ class BencodeString extends BencodeElement
     /**
      * @param string $value
      */
-    public function __construct($value = '')
-    {
+    public function __construct($value = '') {
         $this->setValue($value);
     }
 
     /**
      * @return string
      */
-    public function getValue()
-    {
+    public function getValue() {
         return $this->value;
     }
 
     /**
      * @param string $value
      */
-    public function setValue(string $value)
-    {
+    public function setValue(string $value) {
         $this->value = $value;
+    }
+
+    public function set(string $value) {
+        return $this->setValue($value);
     }
 
     /**
      * @inheritdoc
      */
-    public function encode()
-    {
+    public function encode() {
         parent::encode();
 
         return strlen($this->value) . ':' . $this->value;
@@ -46,24 +46,21 @@ class BencodeString extends BencodeElement
     /**
      * @return string
      */
-    public function __toString()
-    {
+    public function __toString() {
         return (string)$this->value;
     }
 
     /**
      * @inheritDoc
      */
-    public function compare(BencodeElement $element)
-    {
+    public function compare(BencodeElement $element) {
         return $this->encode() === $element->encode();
     }
 
     /**
      * @return string
      */
-    public function unMorph()
-    {
+    public function unMorph() {
         return $this->getValue();
     }
 
@@ -71,8 +68,7 @@ class BencodeString extends BencodeElement
      * @param $string
      * @return $this
      */
-    public function concat($string)
-    {
+    public function concat($string) {
         $this->value .= $string;
 
         return $this;

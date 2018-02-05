@@ -18,15 +18,13 @@ abstract class BencodeElement
     /**
      * @return string
      */
-    public function encode()
-    {
+    public function encode() {
         $this->prepare();
 
         return '';
     }
 
-    public function prepare()
-    {
+    public function prepare() {
 
     }
 
@@ -34,8 +32,7 @@ abstract class BencodeElement
      * @param $value
      * @return BencodeElement
      */
-    public static function morph($value)
-    {
+    public static function morph($value) {
         if ($value instanceof BencodeElement) {
             return $value;
         }

@@ -9,8 +9,7 @@ class BencodeList extends BencodeCollection
      */
     protected $value = [];
 
-    public function __construct(iterable $source = [])
-    {
+    public function __construct(iterable $source = []) {
         foreach ($source as $item) {
             $this->smartAdd(BencodeElement::morph($item));
         }
@@ -19,8 +18,7 @@ class BencodeList extends BencodeCollection
     /**
      * @inheritDoc
      */
-    public function encode()
-    {
+    public function encode() {
         $data = 'l';
 
         foreach ($this->value as $item) {
@@ -33,53 +31,57 @@ class BencodeList extends BencodeCollection
     /**
      * @return BencodeElement[]
      */
-    public function values()
-    {
+    public function values() {
         return $this->value;
     }
 
     /**
      * @return array
      */
-    public function keys()
-    {
+    public function keys() {
         return array_keys($this->value);
     }
 
     /**
      * @inheritDoc
      */
-    public function smartAdd(BencodeElement $e)
-    {
+    public function smartAdd(BencodeElement $e) {
         $this->push($e);
     }
 
     /**
      * @inheritDoc
      */
-    public function getIterator()
-    {
+    public function getIterator() {
         return new \ArrayIterator($this->value);
+    }
+
+    /**
+     * @param int $offset
+     * @return BencodeElement
+     */
+    public function get($offset) {
+        return $this->value[$offset];
     }
 
     /**
      * @inheritDoc
      */
-    public function exists($offset)
-    {
+    public function exists($offset) {
         return array_key_exists($offset, $this->value);
     }
 
-    public function unset($offset)
-    {
+    /**
+     * @param $offset
+     */
+    public function unset($offset) {
         unset($this[$offset]);
     }
 
     /**
      * @param mixed $value
      */
-    public function push($value)
-    {
+    public function push($value) {
         $value = BencodeElement::morph($value);
 
         $this->value[] = $value;
@@ -87,32 +89,28 @@ class BencodeList extends BencodeCollection
         $value->parent = $this;
     }
 
-    public function clear()
-    {
+    public function clear() {
         $this->value = [];
     }
 
     /**
      * @inheritDoc
      */
-    public function count()
-    {
+    public function count() {
         return count($this->value);
     }
 
     /**
      * @inheritDoc
      */
-    public function compare(BencodeElement $element)
-    {
+    public function compare(BencodeElement $element) {
         return false;
     }
 
     /**
      * @inheritDoc
      */
-    public function unMorph()
-    {
+    public function unMorph() {
         $result = [];
 
         foreach ($this->value as $item) {

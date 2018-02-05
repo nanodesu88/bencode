@@ -10,13 +10,11 @@ namespace nanodesu88\bencode;
 
 class BencodeFile extends BencodeList
 {
-    public function getLength()
-    {
-        return (string)$this['length'];
+    public function getLength() {
+        return (string)$this->get('length');
     }
 
-    public function getPath()
-    {
+    public function getPath() {
         $result = [];
 
         foreach ($this['path'] as $el) {

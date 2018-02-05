@@ -1,24 +1,23 @@
 <?php
 
-use nanodesu88\bencode\Bencode;
 use nanodesu88\bencode\BencodeDecoder;
 use nanodesu88\bencode\BencodeDictionary;
 use nanodesu88\bencode\BencodeElement;
 use nanodesu88\bencode\BencodeInteger;
 use nanodesu88\bencode\BencodeList;
 use nanodesu88\bencode\BencodeString;
+use nanodesu88\bencode\Structure\AnnounceResponse;
+use nanodesu88\bencode\Structure\Support\Peer;
 use nanodesu88\bencode\Structure\Torrent;
 use PHPUnit\Framework\TestCase;
 
 final class ParseTest extends TestCase
 {
-    protected function getContent()
-    {
+    protected function getContent() {
         return file_get_contents(__DIR__ . '/../resources/torrent/1.torrent');
     }
 
-    public function testMorph()
-    {
+    public function testMorph() {
         $string     = BencodeElement::morph('string');
         $integer    = BencodeElement::morph(1);
         $array      = BencodeElement::morph([1, 2]);
@@ -30,8 +29,7 @@ final class ParseTest extends TestCase
         $this->assertInstanceOf(BencodeDictionary::class, $dictionary);
     }
 
-    public function testUnMorph()
-    {
+    public function testUnMorph() {
         $decoder = new BencodeDecoder();
 
         $integer    = $decoder->decode('i1e');
@@ -46,8 +44,7 @@ final class ParseTest extends TestCase
     }
 
 
-    public function testEncode()
-    {
+    public function testEncode() {
         $decoder = new BencodeDecoder();
 
         $integer    = $decoder->decode('i1e');
@@ -61,17 +58,46 @@ final class ParseTest extends TestCase
         $this->assertEquals('d6:stringi1ee', $dictionary->encode());
     }
 
-    public function testParseTorrent()
-    {
+    public function testParseTorrent() {
         $decoder = new BencodeDecoder();
 
+        /** @var Torrent $obj */
         $obj = $decoder->decode($this->getContent(), new Torrent());
 
         $this->assertInstanceOf(Torrent::class, $obj);
         $this->assertTrue(is_array($obj->getFiles()));
         $this->assertTrue(is_string($obj->getAnnounce()));
         $this->assertTrue(is_string($obj->getSha1()) && strlen($obj->getSha1()) == 40);
+    }
 
-        var_dump($obj->encode());
+    public function testAnnounce() {
+        $ann = new AnnounceResponse();
+
+        $ann->trackerId       = 'trackerid';
+        $ann->minimumInterval = 60;
+        $ann->interval        = 180;
+        $ann->warningMessage  = 'warning message';
+        $ann->failureReason   = 'failure reason';
+        $ann->complete        = 1;
+        $ann->incomplete      = 1;
+        $ann->peers           = [
+            new Peer('127.0.0.1', 65565, '12345678901234567890'),
+            new Peer('127.0.0.1', 65566, '12345678901234567890'),
+        ];
+
+        $encoded = $ann->encode();
+
+        $decoder = new BencodeDecoder();
+
+        /** @var AnnounceResponse $obj */
+        $obj = $decoder->decode($encoded, new AnnounceResponse());
+
+        $this->assertEquals($ann->trackerId, $obj->trackerId);
+        $this->assertEquals($ann->minimumInterval, $obj->minimumInterval);
+        $this->assertEquals($ann->interval, $obj->interval);
+        $this->assertEquals($ann->warningMessage, $obj->warningMessage);
+        $this->assertEquals($ann->failureReason, $obj->failureReason);
+        $this->assertEquals($ann->complete, $obj->complete);
+        $this->assertEquals($ann->incomplete, $obj->incomplete);
     }
 }

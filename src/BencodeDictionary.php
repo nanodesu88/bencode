@@ -2,8 +2,6 @@
 
 namespace nanodesu88\bencode;
 
-use Illuminate\Support\Arr;
-
 class BencodeDictionary extends BencodeCollection
 {
     /**
@@ -17,8 +15,7 @@ class BencodeDictionary extends BencodeCollection
      * @param iterable $source
      * @throws BencodeException
      */
-    public function __construct(iterable $source = [])
-    {
+    public function __construct(iterable $source = []) {
         foreach ($source as $key => $val) {
             $this->checkKey($key);
 
@@ -29,8 +26,7 @@ class BencodeDictionary extends BencodeCollection
     /**
      * @inheritDoc
      */
-    public function encode()
-    {
+    public function encode() {
         $data = 'd';
 
         foreach ($this->value as $item) {
@@ -50,8 +46,7 @@ class BencodeDictionary extends BencodeCollection
      * @return mixed|void
      * @throws BencodeException
      */
-    public function smartAdd(BencodeElement $e)
-    {
+    public function smartAdd(BencodeElement $e) {
         if ($this->_smart === null) {
             $this->_smart = $e;
         } else {
@@ -65,16 +60,14 @@ class BencodeDictionary extends BencodeCollection
     /**
      * @inheritDoc
      */
-    public function getIterator()
-    {
+    public function getIterator() {
         // TODO: Implement getIterator() method.
     }
 
     /**
      * @inheritDoc
      */
-    public function exists($offset)
-    {
+    public function exists($offset) {
         $offset = static::morph($offset);
 
         foreach ($this->value as $index => $pair) {
@@ -90,8 +83,7 @@ class BencodeDictionary extends BencodeCollection
      * @param string $key
      * @return BencodeElement|BencodeCollection|BencodeDictionary|BencodeList|BencodeString
      */
-    public function getValue($key)
-    {
+    public function getValue($key) {
         $offset = static::morph($key);
 
         foreach ($this->value as $item) {
@@ -103,13 +95,16 @@ class BencodeDictionary extends BencodeCollection
         return null;
     }
 
+    public function get($key) {
+        return $this->getValue($key);
+    }
+
     /**
      * @param string|BencodeString $key
      * @param mixed|BencodeElement $value
      * @throws BencodeException
      */
-    public function setValue($key, $value)
-    {
+    public function setValue($key, $value) {
         $this->checkKey($key);
 
         $offset = static::morph($key);
@@ -133,26 +128,32 @@ class BencodeDictionary extends BencodeCollection
     }
 
     /**
+     * @param $key
+     * @param $value
+     * @throws BencodeException
+     */
+    public function set($key, $value) {
+        return $this->setValue($key, $value);
+    }
+
+    /**
      * @inheritDoc
      */
-    public function count()
-    {
+    public function count() {
         // TODO: Implement count() method.
     }
 
     /**
      * @inheritDoc
      */
-    public function compare(BencodeElement $element)
-    {
+    public function compare(BencodeElement $element) {
         return false;
     }
 
     /**
      * @inheritDoc
      */
-    public function unMorph()
-    {
+    public function unMorph() {
         $result = [];
 
         foreach ($this->value as $item) {
@@ -162,8 +163,7 @@ class BencodeDictionary extends BencodeCollection
         return $result;
     }
 
-    protected function checkKey($key)
-    {
+    protected function checkKey($key) {
         if (($key instanceof BencodeElement && !($key instanceof BencodeString)) && !is_string($key)) {
             throw new BencodeException('dictionary keys must be string');
         }
