@@ -58,7 +58,7 @@ class BencodeList extends BencodeCollection
 
     /**
      * @param int $offset
-     * @return BencodeElement
+     * @return BencodeElement|BencodeString|BencodeDictionary|BencodeList
      */
     public function get($offset) {
         return $this->value[$offset];

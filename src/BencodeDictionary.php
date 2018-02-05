@@ -19,7 +19,7 @@ class BencodeDictionary extends BencodeCollection
         foreach ($source as $key => $val) {
             $this->checkKey($key);
 
-            $this->setValue(BencodeElement::morph($key), BencodeElement::morph($val));
+            $this->set($key, $val);
         }
     }
 
@@ -54,7 +54,7 @@ class BencodeDictionary extends BencodeCollection
         if ($this->_smart === null) {
             $this->_smart = $e;
         } else {
-            $this->setValue($this->_smart, $e);
+            $this->set($this->_smart, $e);
             $this->_smart = null;
         }
 
@@ -65,7 +65,7 @@ class BencodeDictionary extends BencodeCollection
      * @inheritDoc
      */
     public function getIterator() {
-        // TODO: Implement getIterator() method.
+        return new \ArrayIterator($this->value);
     }
 
     /**
@@ -167,6 +167,10 @@ class BencodeDictionary extends BencodeCollection
         return $result;
     }
 
+    /**
+     * @param $key
+     * @throws BencodeException
+     */
     protected function checkKey($key) {
         if (($key instanceof BencodeElement && !($key instanceof BencodeString)) && !is_string($key)) {
             throw new BencodeException('dictionary keys must be string');
